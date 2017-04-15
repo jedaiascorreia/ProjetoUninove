@@ -17,25 +17,38 @@
 		array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
 		);
 	}
-	
-	//Retorna Informações do Usuário
-	$app->get('/usuario/usuario','getUsuario');
-	//Adiciona Usuario
-	$app->post('/usuario/insere','addUsuario');
+
 	//Login
-	$app->get('/usuario/login-ra=:ra','getLogin');
-	//Editando Login
-	$app->put('/usuario/editar-id=:id','editaUsuario');
+	$app->get('/login/:ra/:senha','getLogin');
+	//Novo Usuário
+	$app->post('/novousuario','postUsuario');
+	//Visualizar Prontuários
+	$app->get('/prontuario','getProntuario');
+	//Novo Prontuário
+	$app->post('/novoprontuario/','postProntuario');
+	//Editar Prontuário
+	$app->put('/editarprontuario/:idPront','putProntuario');
+	//Deletar Prontuário
+	$app->delete('/deletarprontuario/:idPront','deleteProntuario');
 	
 	
-	
-	function getUsuario(){
-		$stmt = getConn()->query("SELECT * FROM usuario");
-		$categorias = $stmt->fetchAll(PDO::FETCH_OBJ);
-		echo "{categorias:".json_encode($categorias)."}";
+	function getLogin($ra,$senha){
+		$conn = getConn();
+		
+		$sql = "SELECT * 
+		FROM usuario 
+		WHERE ra = :ra 
+		AND senha = :senha";
+		
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("ra",$ra);
+		$stmt->bindParam("senha",$senha);		
+		$stmt->execute();
+		$login = $stmt->fetchObject();
+		echo json_encode($login);
 	}
 	
-	function addUsuario()
+		function postUsuario()
 	{
 		$request = \Slim\Slim::getInstance()->request();
 		$usuario = json_decode($request->getBody());
@@ -52,32 +65,26 @@
 		echo json_encode($usuario);
 	}
 	
-	function getLogin($ra){
+	function getProntuario(){
 		$conn = getConn();
-		$sql = "SELECT * FROM usuario WHERE ra = :ra";
+		
+		$sql = 	"SELECT * 
+				FROM	prontuario	pr,
+						usuario		usu,
+						estilo_de_vida	ev,
+						exame_fisico	ef,
+						anamnese	an
+				WHERE	pr.id_usuario 			=		usu.id_usuario
+				AND	pr.id_estilo_de_vida	= 		ev.id_estilo_de_vida
+				AND	pr.id_exame_fisico		=		ef.id_exame_fisico
+				AND	pr.id_anamnese		=		an.id_anamnese";
+		
 		$stmt = $conn->prepare($sql);
-		$stmt->bindParam("ra",$ra);
 		$stmt->execute();
-		$login = $stmt->fetchObject();
-		echo json_encode($login);
+		$pront = $stmt->fetchObject();
+		echo json_encode($pront);
 	}
 	
-	function editaUsuario($id){
-		$request = \Slim\Slim::getInstance()->request();
-		$novousu = json_decode($request->getBody());
-		$sql = "UPDATE usuario SET ra=:ra,senha=:senha,nome=:nome,email=:email,status_id=:status_id WHERE id=:id";
-		$conn = getConn();
-		$stmt = $conn->prepare($sql);
-		$stmt->bindParam("ra",$novousu->ra);
-		$stmt->bindParam("senha",$novousu->senha);
-		$stmt->bindParam("nome",$novousu->nome);
-		$stmt->bindParam("email",$novousu->email);
-		$stmt->bindParam("status_id",$novousu->status_id);
-		$stmt->bindParam("id",$id);
-		$stmt->execute();
-
-		echo json_encode($novousu);
-	}
 	$app->run();
 ?>
 
