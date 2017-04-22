@@ -163,10 +163,6 @@
 							peso 			= 	:peso,
 							altura 			=	:altura,
 							comentario_final	=	:comentario_final,
-							usuario_id 		=	:usuario_id,
-							id_estilo_de_vida 	=	:id_estilo_de_vida,
-							id_exame_fisico	=	:id_exame_fisico,
-							id_anamnese 		=	:id_anamnese,
 							data_ 			= 	:data_,
 							data_edicao 		= 	:data_edicao
 				WHERE		id				=	:id";
@@ -181,19 +177,67 @@
 		$stmt->bindParam("peso",$prontuario->peso);
 		$stmt->bindParam("altura",$prontuario->altura);
 		$stmt->bindParam("comentario_final",$prontuario->comentario_final);
-		$stmt->bindParam("usuario_id",$prontuario->usuario_id);
-		$stmt->bindParam("id_estilo_de_vida",$prontuario->id_estilo_de_vida);
-		$stmt->bindParam("id_anamnese",$prontuario->id_anamnese);
 		$stmt->bindParam("data_",$prontuario->data_);
 		$stmt->bindParam("data_edicao",$prontuario->data_edicao);
-		$stmt->bindParam("id",$prontuario->id);
+		$stmt->bindParam("id",$id);
 		$stmt->execute();
 		
 		echo json_encode($prontuario);
 	}
 	
 	//Prontuário
-	//$app->delete('/deletarprontuario/:idPront','deleteProntuario');
+	$app->delete('/deletarprontuario/:id','deleteProntuario');
+	function deleteProntuario($id){
+		$conn = getConn();
+
+		//estilo_de_vida
+		$sql = 	"DELETE  
+				FROM		estilo_de_vida 
+				WHERE 		id	=	(
+										SELECT		id_estilo_de_vida
+										FROM		prontuario 
+										WHERE 		id	=	:id
+									)";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id",$id);
+		$stmt->execute();
+		
+		//exame_fisico
+		$sql = 	"DELETE  
+				FROM		exame_fisico 
+				WHERE 		id	=	(
+										SELECT		id_exame_fisico
+										FROM		prontuario 
+										WHERE 		id	=	:id
+									)";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id",$id);
+		$stmt->execute();
+		
+		//anamnese
+		$sql = 	"DELETE  
+				FROM		anamnese 
+				WHERE 		id	=	(
+										SELECT		id_anamnese
+										FROM		prontuario 
+										WHERE 		id	=	:id
+									)";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id",$id);
+		$stmt->execute();
+		
+		//prontuario
+		$sql = 	"DELETE 
+				FROM		prontuario 
+				WHERE 		id	=	:id";
+				
+		$conn = getConn();
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id",$id);
+		$stmt->execute();
+		
+		echo "Prontuário Apagado";
+	}
 	$app->run();
 ?>
 
