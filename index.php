@@ -11,9 +11,9 @@
 	
 	function getConn()
 	{
-		return new PDO('mysql:host=localhost;dbname=prjmedicina',
-		'root',
-		'',
+		return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
+		'u593040281_root',
+		'uninove10',
 		array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
 		);
 	}
