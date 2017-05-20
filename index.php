@@ -11,9 +11,9 @@
 	
 	function getConn()
 	{
-		return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
-		'u593040281_root',
-		'uninove10',
+		return new PDO('mysql:host=localhost;dbname=prjmedicina',
+		'root',
+		'',
 		array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
 		);
 	}
@@ -148,6 +148,106 @@
 		echo json_encode($prontuario);
 	}
 	
+	//Notificacao
+	$app->get('/notificacao/:id_professor','getNotificacao');
+	function getNotificacao($id_professor){
+		$conn = getConn();
+		
+		$sql = 	"SELECT 	count(*)  Qtd_Notificacoes
+				FROM 		notificacao 
+				WHERE 		id_professor = :id_professor
+				AND		status_notificacao = 'P'";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id_professor",$id_professor);		
+		$stmt->execute();
+		$notificacao = $stmt->fetchObject();
+		echo json_encode($notificacao);
+	}
+	
+	//Notificacao
+	$app->post('/novanotificacao','postNotificacao');
+	function postNotificacao(){
+		$request = \Slim\Slim::getInstance()->request();
+		$notificacao = json_decode($request->getBody());
+		$sql = 	"INSERT INTO	notificacao
+								(
+									id_aluno,
+									id_professor,
+									status_notificacao
+								)
+						values	(
+									:id_aluno,
+									:id_professor,
+									:status_notificacao
+								)";
+		$conn = getConn();
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id_aluno",$notificacao->id_aluno);
+		$stmt->bindParam("id_professor",$notificacao->id_professor);
+		$stmt->bindParam("status_notificacao",$notificacao->status_notificacao);
+		$stmt->execute();
+		$notificacao->id = $conn->lastInsertId();
+		echo json_encode($notificacao);
+	}
+	
+	//Notificacao
+	$app->put('/editarnotificacao/:id','putNotificacao');
+	function putNotificacao($id){
+		$request = \Slim\Slim::getInstance()->request();
+		$notificacao = json_decode($request->getBody());
+		
+		$sql =	"UPDATE	notificacao
+				SET			status_notificacao	=	'V'
+				WHERE		id				=	:id";
+
+		$conn = getConn();
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id",$id);
+		$stmt->execute();
+		
+		echo json_encode($notificacao);
+	}
+	
+	//comentario
+	$app->get('/comentario/:id_prontuario','getComentario');
+	function getComentario($id_prontuario){
+		$conn = getConn();
+		
+		$sql = 	"SELECT 	comentario
+				FROM 		comentario 
+				WHERE 		id_prontuario = :id_prontuario";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id_prontuario",$id_prontuario);		
+		$stmt->execute();
+		$notificacao = $stmt->fetchObject();
+		echo json_encode($notificacao);
+	}
+	
+	//comentario
+	$app->post('/novocomentario','postComentario');
+	function postComentario(){
+		$request = \Slim\Slim::getInstance()->request();
+		$comentario = json_decode($request->getBody());
+		$sql = "INSERT INTO	comentario	(	
+											comentario,
+											id_notificacao,
+											id_prontuario
+										)
+							values		(
+											:comentario,
+											:id_notificacao,
+											:id_prontuario
+										)";
+		$conn = getConn();
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("comentario",$comentario->comentario);
+		$stmt->bindParam("id_notificacao",$comentario->id_notificacao);
+		$stmt->bindParam("id_prontuario",$comentario->id_prontuario);
+		$stmt->execute();
+		$comentario->id = $conn->lastInsertId();
+		echo json_encode($comentario);
+	}
+	
 	//Prontuário
 	$app->put('/editarprontuario/:id','putProntuario');
 	function putProntuario($id){
@@ -166,7 +266,7 @@
 							data_ 			= 	:data_,
 							data_edicao 		= 	:data_edicao
 				WHERE		id				=	:id";
-		
+
 		$conn = getConn();
 		$stmt = $conn->prepare($sql);
 		$stmt->bindParam("num_prontuario",$prontuario->num_prontuario);
