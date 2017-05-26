@@ -70,6 +70,20 @@
 		echo json_encode($usuario);
 	}
 	
+	//retorna_professores
+	$app->get('/professores','getProfessores');
+	function getProfessores(){
+				
+		$sql = 	"SELECT 	id,
+							nome
+				FROM 		usuario 
+				WHERE 		upper(status_id) 	=	 'PROFESSOR'";
+		
+		$stmt = getConn()->query($sql);
+		$professores = $stmt->fetchAll(PDO::FETCH_OBJ);
+		echo json_encode($professores);
+	}
+	
 	//Prontuários
 	$app->get('/prontuario/:usuario_id','getProntuario');
 	function getProntuario($usuario_id){
@@ -152,8 +166,8 @@
 	}
 	
 	//Notificacao
-	$app->get('/notificacao/:id_professor','getNotificacao');
-	function getNotificacao($id_professor){
+	$app->get('/qtdnotificacao/:id_professor','getQtdNotificacao');
+	function getQtdNotificacao($id_professor){
 		$conn = getConn();
 		
 		$sql = 	"SELECT 	count(*)  Qtd_Notificacoes
@@ -168,6 +182,27 @@
 	}
 	
 	//Notificacao
+	$app->get('/notificacao/:id_professor','getNotificacao');
+	function getNotificacao($id_professor){
+		$conn = getConn();
+		
+		$sql = 	"SELECT 	usu.nome,
+							pront.num_prontuario
+				FROM 		notificacao 	noti,
+							usuario		usu,
+							prontuario	pront
+				WHERE 		noti.id_professor				= 	:id_professor
+				AND		upper(noti.status_notificacao) 	= 	'P'
+				AND		noti.id_aluno					=	usu.id
+				AND		noti.id_prontuario				=	pront.id";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("id_professor",$id_professor);		
+		$stmt->execute();
+		$notificacao = $stmt->fetchAll(PDO::FETCH_OBJ);
+		echo json_encode($notificacao);
+	}
+	
+	//Notificacao
 	$app->post('/novanotificacao','postNotificacao');
 	function postNotificacao(){
 		$request = \Slim\Slim::getInstance()->request();
@@ -176,17 +211,20 @@
 								(
 									id_aluno,
 									id_professor,
+									id_prontuario,
 									status_notificacao
 								)
 						values	(
 									:id_aluno,
 									:id_professor,
+									:id_prontuario,
 									:status_notificacao
 								)";
 		$conn = getConn();
 		$stmt = $conn->prepare($sql);
 		$stmt->bindParam("id_aluno",$notificacao->id_aluno);
 		$stmt->bindParam("id_professor",$notificacao->id_professor);
+		$stmt->bindParam("id_prontuario",$notificacao->id_prontuario);
 		$stmt->bindParam("status_notificacao",$notificacao->status_notificacao);
 		$stmt->execute();
 		$notificacao->id = $conn->lastInsertId();
