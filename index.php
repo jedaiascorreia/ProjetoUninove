@@ -14,13 +14,13 @@
 	
 	function getConn()
 	{
-		//return new PDO('mysql:host=localhost;dbname=prjmedicina',
-		//'root',
-		//'',
+		return new PDO('mysql:host=localhost;dbname=prjmedicina',
+		'root',
+		'',
 		
-		return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
-		'u593040281_root',
-		'uninove10',
+		//return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
+		//'u593040281_root',
+		//'uninove10',
 		
 		array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
 		);
@@ -111,6 +111,74 @@
 		echo json_encode($pront);
 	}
 	
+	
+	//Prontuários_tcc
+	$app->get('/prontuariotcc/:id_usuario','getProntuarioTcc');
+	function getProntuarioTcc($id_usuario){
+		$conn = getConn();
+		
+		$sql = 	"SELECT	* 
+				FROM	PRONTUARIO_TCC
+				WHERE	ID_USUARIO 			=		:id_usuario";
+		
+		$stmt = $conn->prepare($sql);
+		$stmt -> bindParam("id_usuario",$id_usuario);
+		$stmt->execute();
+		$pront = $stmt->fetchObject();
+		echo json_encode($pront);
+	}
+	
+	//Prontuário_Tcc
+	$app->post('/novoprontuariotcc','postProntuarioTcc');
+	function postProntuarioTcc(){
+		$request = \Slim\Slim::getInstance()->request();
+		$prontuariotcc = json_decode($request->getBody());
+		$sql = "INSERT INTO	prontuario_tcc (
+										usuario_ra,
+										sexo,
+										idade,
+										peso,
+										altura,
+										fuma_frequentemente,
+										fuma_doente,
+										consome_alcool,
+										queixa_paciente,
+										diagnostico,
+										id_professor,
+										id_usuario
+									)
+							values 	(	
+										:usuario_ra,
+										:sexo,
+										:idade,
+										:peso,
+										:altura,
+										:fuma_frequentemente,
+										:fuma_doente,
+										:consome_alcool,
+										:queixa_paciente,
+										:diagnostico,
+										:id_professor,
+										:id_usuario
+									) ";
+		$conn = getConn();
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam("usuario_ra",	$prontuariotcc->usuario_ra);
+		$stmt->bindParam("sexo",		$prontuariotcc->sexo);
+		$stmt->bindParam("idade",		$prontuariotcc->idade);
+		$stmt->bindParam("peso",		$prontuariotcc->peso);
+		$stmt->bindParam("altura",		$prontuariotcc->altura);
+		$stmt->bindParam("fuma_frequentemente",$prontuariotcc->fuma_frequentemente);
+		$stmt->bindParam("fuma_doente",	$prontuariotcc->fuma_doente);
+		$stmt->bindParam("consome_alcool",	$prontuariotcc->consome_alcool);
+		$stmt->bindParam("queixa_paciente",	$prontuariotcc->queixa_paciente);
+		$stmt->bindParam("diagnostico",		$prontuariotcc->diagnostico);
+		$stmt->bindParam("id_professor",	$prontuariotcc->id_professor);
+		$stmt->bindParam("id_usuario",		$prontuariotcc->id_usuario);
+		$stmt->execute();
+		$prontuariotcc->id = $conn->lastInsertId();
+		echo json_encode($prontuariotcc);
+	}
 	
 	//Prontuário
 	$app->post('/novoprontuario','postProntuario');
