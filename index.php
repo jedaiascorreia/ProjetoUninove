@@ -14,13 +14,13 @@
 	
 	function getConn()
 	{
-		return new PDO('mysql:host=localhost;dbname=prjmedicina',
+		/*return new PDO('mysql:host=localhost;dbname=prjmedicina',
 		'root',
-		'',
+		'',*/
 		
-		//return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
-		//'u593040281_root',
-		//'uninove10',
+		return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
+		'u593040281_root',
+		'uninove10',
 		
 		array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
 		);
@@ -123,6 +123,22 @@
 		
 		$stmt = $conn->prepare($sql);
 		$stmt -> bindParam("id_usuario",$id_usuario);
+		$stmt->execute();
+		$pront = $stmt->fetchObject();
+		echo json_encode($pront);
+	}
+	
+	//Prontuários_Tcc
+	$app->get('/prontuariotccnotificacao/:id','getProntuarioTccNotificacao');
+	function getProntuarioTccNotificacao($id){
+		$conn = getConn();
+		
+		$sql = 	"SELECT	* 
+				FROM		PRONTUARIO_TCC
+				WHERE		ID 			=		:id";
+		
+		$stmt = $conn->prepare($sql);
+		$stmt -> bindParam("id",$id);
 		$stmt->execute();
 		$pront = $stmt->fetchObject();
 		echo json_encode($pront);
@@ -260,10 +276,10 @@
 		$conn = getConn();
 		
 		$sql = 	"SELECT 	usu.nome,
-							pront.num_prontuario
+							pront.id
 				FROM 		notificacao 	noti,
 							usuario		usu,
-							prontuario	pront
+							prontuario_tcc	pront
 				WHERE 		noti.id_professor				= 	:id_professor
 				AND		upper(noti.status_notificacao) 	= 	'P'
 				AND		noti.id_aluno					=	usu.id
