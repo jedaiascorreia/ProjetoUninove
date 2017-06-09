@@ -18,7 +18,7 @@
 		'root',
 		'',*/
 		
-		return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
+		/return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
 		'u593040281_root',
 		'uninove10',
 		
@@ -118,13 +118,13 @@
 		$conn = getConn();
 		
 		$sql = 	"SELECT	* 
-				FROM	PRONTUARIO_TCC
+				FROM	prontuario_tcc
 				WHERE	ID_USUARIO 			=		:id_usuario";
 		
 		$stmt = $conn->prepare($sql);
 		$stmt -> bindParam("id_usuario",$id_usuario);
 		$stmt->execute();
-		$pront = $stmt->fetchObject();
+		$pront = $stmt->fetchAll(PDO::FETCH_OBJ);
 		echo json_encode($pront);
 	}
 	
@@ -134,8 +134,8 @@
 		$conn = getConn();
 		
 		$sql = 	"SELECT	* 
-				FROM		PRONTUARIO_TCC
-				WHERE		ID 			=		:id";
+				FROM		prontuario_tcc
+				WHERE		id 			=		:id";
 		
 		$stmt = $conn->prepare($sql);
 		$stmt -> bindParam("id",$id);
@@ -161,7 +161,8 @@
 										queixa_paciente,
 										diagnostico,
 										id_professor,
-										id_usuario
+										id_usuario,
+										nome_paciente
 									)
 							values 	(	
 										:usuario_ra,
@@ -175,7 +176,8 @@
 										:queixa_paciente,
 										:diagnostico,
 										:id_professor,
-										:id_usuario
+										:id_usuario,
+										:nome_paciente
 									) ";
 		$conn = getConn();
 		$stmt = $conn->prepare($sql);
@@ -191,6 +193,7 @@
 		$stmt->bindParam("diagnostico",		$prontuariotcc->diagnostico);
 		$stmt->bindParam("id_professor",	$prontuariotcc->id_professor);
 		$stmt->bindParam("id_usuario",		$prontuariotcc->id_usuario);
+		$stmt->bindParam("nome_paciente",		$prontuariotcc->nome_paciente);
 		$stmt->execute();
 		$prontuariotcc->id = $conn->lastInsertId();
 		echo json_encode($prontuariotcc);
@@ -275,7 +278,8 @@
 	function getNotificacao($id_professor){
 		$conn = getConn();
 		
-		$sql = 	"SELECT 	usu.nome,
+		$sql = 	"SELECT 	noti.id,
+							usu.nome,
 							pront.id
 				FROM 		notificacao 	noti,
 							usuario		usu,
