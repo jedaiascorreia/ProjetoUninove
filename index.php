@@ -18,7 +18,7 @@
 		'root',
 		'',*/
 		
-		/return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
+		return new PDO('mysql:host=mysql.hostinger.com.br;dbname=u593040281_prj',
 		'u593040281_root',
 		'uninove10',
 		
@@ -26,7 +26,7 @@
 		);
 	}
 	
-	//Login
+	//Login usuario
 	$app->get('/login/:ra/:senha','getLogin');
 	function getLogin($ra,$senha){
 		$conn = getConn();
@@ -280,14 +280,15 @@
 		
 		$sql = 	"SELECT 	noti.id,
 							usu.nome,
-							pront.id
+							pront.nome_paciente,
+							pront.pront_id
 				FROM 		notificacao 	noti,
 							usuario		usu,
 							prontuario_tcc	pront
 				WHERE 		noti.id_professor				= 	:id_professor
 				AND		upper(noti.status_notificacao) 	= 	'P'
 				AND		noti.id_aluno					=	usu.id
-				AND		noti.id_prontuario				=	pront.id";
+				AND		noti.id_prontuario				=	pront.pront_id";
 		$stmt = $conn->prepare($sql);
 		$stmt->bindParam("id_professor",$id_professor);		
 		$stmt->execute();
@@ -322,6 +323,18 @@
 		$stmt->execute();
 		$notificacao->id = $conn->lastInsertId();
 		echo json_encode($notificacao);
+	}
+
+	$app->get('/ultimoPront', 'ultimoProntuario');
+	function ultimoProntuario(){
+		$sql = 	"SELECT ID
+				FROM prontuario_tcc
+				ORDER BY ID DESC 
+				LIMIT 1";
+		
+		$stmt = getConn()->query($sql);
+		$pront = $stmt->fetchObject();
+		echo json_encode($pront);
 	}
 	
 	//Notificacao
