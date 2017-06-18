@@ -129,16 +129,16 @@
 	}
 	
 	//Prontuários_Tcc
-	$app->get('/prontuariotccnotificacao/:id','getProntuarioTccNotificacao');
-	function getProntuarioTccNotificacao($id){
+	$app->get('/prontuariotccnotificacao/:pront_id','getProntuarioTccNotificacao');
+	function getProntuarioTccNotificacao($pront_id){
 		$conn = getConn();
 		
 		$sql = 	"SELECT	* 
 				FROM		prontuario_tcc
-				WHERE		id 			=		:id";
+				WHERE		pront_id 			=		:pront_id";
 		
 		$stmt = $conn->prepare($sql);
-		$stmt -> bindParam("id",$id);
+		$stmt -> bindParam("pront_id",$pront_id);
 		$stmt->execute();
 		$pront = $stmt->fetchObject();
 		echo json_encode($pront);
@@ -195,7 +195,7 @@
 		$stmt->bindParam("id_usuario",		$prontuariotcc->id_usuario);
 		$stmt->bindParam("nome_paciente",		$prontuariotcc->nome_paciente);
 		$stmt->execute();
-		$prontuariotcc->id = $conn->lastInsertId();
+		$prontuariotcc->pront_id = $conn->lastInsertId();
 		echo json_encode($prontuariotcc);
 	}
 	
@@ -327,9 +327,9 @@
 
 	$app->get('/ultimoPront', 'ultimoProntuario');
 	function ultimoProntuario(){
-		$sql = 	"SELECT ID
+		$sql = 	"SELECT pront_id
 				FROM prontuario_tcc
-				ORDER BY ID DESC 
+				ORDER BY pront_id DESC 
 				LIMIT 1";
 		
 		$stmt = getConn()->query($sql);
