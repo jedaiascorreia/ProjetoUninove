@@ -26,7 +26,7 @@
 		);
 	}
 	
-	//Login usuario
+	//Login
 	$app->get('/login/:ra/:senha','getLogin');
 	function getLogin($ra,$senha){
 		$conn = getConn();
@@ -129,16 +129,16 @@
 	}
 	
 	//Prontuários_Tcc
-	$app->get('/prontuariotccnotificacao/:pront_id','getProntuarioTccNotificacao');
-	function getProntuarioTccNotificacao($pront_id){
+	$app->get('/prontuariotccnotificacao/:id','getProntuarioTccNotificacao');
+	function getProntuarioTccNotificacao($id){
 		$conn = getConn();
 		
 		$sql = 	"SELECT	* 
 				FROM		prontuario_tcc
-				WHERE		pront_id 			=		:pront_id";
+				WHERE		pront_id 			=		:id";
 		
 		$stmt = $conn->prepare($sql);
-		$stmt -> bindParam("pront_id",$pront_id);
+		$stmt -> bindParam("id",$id);
 		$stmt->execute();
 		$pront = $stmt->fetchObject();
 		echo json_encode($pront);
@@ -195,7 +195,7 @@
 		$stmt->bindParam("id_usuario",		$prontuariotcc->id_usuario);
 		$stmt->bindParam("nome_paciente",		$prontuariotcc->nome_paciente);
 		$stmt->execute();
-		$prontuariotcc->pront_id = $conn->lastInsertId();
+		$prontuariotcc->id = $conn->lastInsertId();
 		echo json_encode($prontuariotcc);
 	}
 	
@@ -258,42 +258,100 @@
 	}
 	
 	//Notificacao
-	$app->get('/qtdnotificacao/:id_professor','getQtdNotificacao');
-	function getQtdNotificacao($id_professor){
+	$app->get('/qtdnotificacao/:id_professor/:status','getQtdNotificacao');
+	function getQtdNotificacao($id_professor, $status){
 		$conn = getConn();
+
+		$retorno = strcmp($status, "Professor");
+
+		if ($retorno == 0) {
 		
-		$sql = 	"SELECT 	count(*)  Qtd_Notificacoes
-				FROM 		notificacao 
-				WHERE 		id_professor = :id_professor
-				AND		status_notificacao = 'P'";
-		$stmt = $conn->prepare($sql);
-		$stmt->bindParam("id_professor",$id_professor);		
-		$stmt->execute();
-		$notificacao = $stmt->fetchObject();
-		echo json_encode($notificacao);
+			$sql = 	"SELECT 	count(*)  Qtd_Notificacoes
+					FROM 		notificacao 
+					WHERE 		id_professor = :id_professor
+					AND		status_notificacao = 'P'";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam("id_professor",$id_professor);		
+			$stmt->execute();
+			$notificacao = $stmt->fetchObject();
+			echo json_encode($notificacao);
+		}
+
+		else
+		{
+			$sql = 	"SELECT 	count(*)  Qtd_Notificacoes
+					FROM 		notificacao 
+					WHERE 		id_aluno = :id_professor
+					AND		status_notificacao = 'P'";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam("id_professor",$id_professor);		
+			$stmt->execute();
+			$notificacao = $stmt->fetchObject();
+			echo json_encode($notificacao);
+		}
 	}
 	
 	//Notificacao
-	$app->get('/notificacao/:id_professor','getNotificacao');
-	function getNotificacao($id_professor){
+	$app->get('/notificacao/:id_professor/:status','getNotificacao');
+	function getNotificacao($id_professor, $status){
 		$conn = getConn();
+
+		$retorno = strcmp($status, "Professor");
+
+		if ($retorno == 0) {
+			# code...
 		
-		$sql = 	"SELECT 	noti.id,
-							usu.nome,
-							pront.nome_paciente,
-							pront.pront_id
-				FROM 		notificacao 	noti,
-							usuario		usu,
-							prontuario_tcc	pront
-				WHERE 		noti.id_professor				= 	:id_professor
-				AND		upper(noti.status_notificacao) 	= 	'P'
-				AND		noti.id_aluno					=	usu.id
-				AND		noti.id_prontuario				=	pront.pront_id";
+
+			$sql = 	"SELECT 	noti.id,
+								usu.nome,
+								pront.nome_paciente,
+								pront.pront_id
+					FROM 		notificacao 	noti,
+								usuario		usu,
+								prontuario_tcc	pront
+					WHERE 		noti.id_professor				= 	:id_professor
+					AND		upper(noti.status_notificacao) 	= 	'P'
+					AND		noti.id_aluno					=	usu.id
+					AND		noti.id_prontuario				=	pront.pront_id";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam("id_professor",$id_professor);		
+			$stmt->execute();
+			$notificacao = $stmt->fetchAll(PDO::FETCH_OBJ);
+			echo json_encode($notificacao);
+		}
+		else
+		{
+			$sql = 	"SELECT 	noti.id,
+								usu.nome,
+								pront.nome_paciente,
+								pront.pront_id
+					FROM 		notificacao 	noti,
+								usuario		usu,
+								prontuario_tcc	pront
+					WHERE 		noti.id_aluno				= 	:id_professor
+					AND		upper(noti.status_notificacao) 	= 	'P'
+					AND		noti.id_aluno					=	usu.id
+					AND		noti.id_prontuario				=	pront.pront_id";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam("id_professor",$id_professor);		
+			$stmt->execute();
+			$notificacao = $stmt->fetchAll(PDO::FETCH_OBJ);
+			echo json_encode($notificacao);
+		}
+	}
+
+	$app->get('/notificacaoid/:id_prontuario', 'notificacaopront');
+	function notificacaopront($id_prontuario){
+		$conn = getConn();
+
+		$sql = 	"SELECT id
+				FROM notificacao
+				WHERE id_prontuario = :id_prontuario";
 		$stmt = $conn->prepare($sql);
-		$stmt->bindParam("id_professor",$id_professor);		
+		$stmt->bindParam("id_prontuario", $id_prontuario);
 		$stmt->execute();
-		$notificacao = $stmt->fetchAll(PDO::FETCH_OBJ);
-		echo json_encode($notificacao);
+		$idP = $stmt->fetchObject();
+		echo json_encode($idP);
 	}
 	
 	//Notificacao
@@ -366,7 +424,7 @@
 		$stmt = $conn->prepare($sql);
 		$stmt->bindParam("id_prontuario",$id_prontuario);		
 		$stmt->execute();
-		$notificacao = $stmt->fetchObject();
+		$notificacao = $stmt->fetchAll(PDO::FETCH_OBJ);
 		echo json_encode($notificacao);
 	}
 	
